@@ -1,4 +1,5 @@
 git init
+git remote add origin https://github.com/shidqiaqil/stock_serba35.git
 git add *
 git commit -m "Pesan komit"
 git push origin master
