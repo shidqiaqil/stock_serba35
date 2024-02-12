@@ -10,7 +10,7 @@
     <link  href="assets/fontawesome/css/all.min.css" rel="stylesheet">
     <link href="assets/css/loginadmin.css" rel="stylesheet">
     
-    <title>Login SIstem</title>
+    <title>Login Owner</title>
 </head>
 
 <!-- check login -->
@@ -47,21 +47,21 @@
         backdrop-filter: blur(30px);
         ">
     <div class="card-body py-5 px-md-5">
-        <form method="post" action="cek_login.php">
+        <form method="post" action="cek_login_owner.php">
             <div class="row d-flex justify-content-center">
                 <div class="col-lg-8">
-                <h2 class="fw-bold mb-5">Selamat Datang di Sistem SERBA 35000</h2>
+                <h2 class="fw-bold mb-5"><Strong style="color:red">Selamat Datang Owner di Sistem SERBA 35000</h2>
                 <form>
 
                     <!-- Email input -->
                     <div class="form-outline mb-4">
-                        <label class="form-label" for="form3Example3">Masukkan ID</label>
+                        <label class="form-label" for="form3Example3"><Strong style="color:black">Masukkan ID</label>
                         <input type="text" id="form3Example3" class="form-control" name="id_user"/>              
                     </div>
 
                     <!-- Password input -->
                     <div class="form-outline mb-4">
-                        <label class="form-label" for="form3Example4">Masukkan Password</label>
+                        <label class="form-label" for="form3Example4"><Strong style="color:black">Masukkan Password</label>
                         <input type="password" id="form3Example4" class="form-control" name="pass_user"/>
                     </div>
 
