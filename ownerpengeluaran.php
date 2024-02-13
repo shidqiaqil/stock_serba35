@@ -53,9 +53,9 @@
                 <div class="sidebar-heading border-bottom bg-warning"><strong>HALO OWNER <BR>SERBA 35000!</BR></strong></div>
                 <div class="list-group list-group-flush">
                 <a class="list-group-item list-group-item-action list-group-item-light p-3 " href="owner.php" >Stock</a>
-                    <a class="list-group-item list-group-item-action list-group-item-light p-3 active" href="ownerbarangmasuk.php" >Barang Masuk</a>
+                    <a class="list-group-item list-group-item-action list-group-item-light p-3" href="ownerbarangmasuk.php" >Barang Masuk</a>
                     <a class="list-group-item list-group-item-action list-group-item-light p-3" href="ownerbarangkeluar.php">Barang Keluar</a>
-                    <a class="list-group-item list-group-item-action list-group-item-light p-3 " href="ownerpengeluaran.php">Pengeluaran</a>
+                    <a class="list-group-item list-group-item-action list-group-item-light p-3 active" href="ownerpengeluaran.php">Pengeluaran</a>
                     <a class="list-group-item list-group-item-action list-group-item-light p-3 " href="ownerprofit.php">Profit</a>
                     <a class="list-group-item list-group-item-action list-group-item-light p-3" href="logoutowner.php">Keluar</a>
                     
@@ -71,51 +71,120 @@
                         
                     </div>
                 </nav>
+                <?php
+                date_default_timezone_set('Asia/Bangkok');
+                $date = date('Y-m-d');
+            
+                $stokplus = mysqli_query($koneksi, "SELECT SUM(total_barang_masuk) AS stokplus FROM barang_masuk WHERE id_user = '$userid'");
+                $stokminus = mysqli_query($koneksi, "SELECT SUM(total_barang_keluar) AS stokminus FROM barang_keluar WHERE id_user = '$userid'");
+
+                $finalstok = mysqli_query($koneksi, "SELECT (SELECT SUM(total_barang_masuk) FROM barang_masuk WHERE id_user = '$userid') - (SELECT SUM(total_barang_keluar) FROM barang_keluar WHERE id_user = '$userid') AS difference");
                 
+                if ($finalstok) {
+                    // Fetch the result as an associative array
+                    $row = mysqli_fetch_assoc($finalstok);
 
+                    // Access the calculated difference
+                    $difference = $row['difference'];
+                }
 
+                
+                if($_POST){
+                        try {
+                            $sql = "INSERT INTO pengeluaran 
+                            (id_pengeluaran,created_timestamp_pengeluaran, id_user, total_pengeluaran)
+                            VALUES ('','".$_POST['created_timestamp_pengeluaran']."','".$_POST['id_user']."','".$_POST['total_pengeluaran']."')";
+                            
+                            if(!$koneksi->query($sql)){
+                                echo $koneksi->error;
+                                die();
+                            }
 
-
-
-                <!-- Page content-->
-                <div class="container-fluid">
+                        } catch (Exception $e) {
+                            echo $e;
+                            die();
+                        }
+                        // echo $_POST['id_user'];
+                        echo "<script>
+                        alert('Data berhasil di input');
+                        window.location.href='ownerpengeluaran.php';
+                        </script>";
+                    }
+                    
                    
-                    <br>
                 
+                ?>
+                <!-- Page content-->
+                <div class="container-fluid">               
                     <br>
 
                     <div class="table-container">
-                        <h4>Riwayat Barang Masuk</h4>
+                        <h4>Pengeluaran</h4>
+                        <br>
+                    
+                        <div class="row">
+                            <h6>Input Total Pengeluaran</h6>
+                            <div class="col-md-8 ">
+                                <form  method="post">
+                                <div class="input-group">
+                                    <!-- <input type="text" class="form-control" placeholder="Id user" name="iduser" required> &nbsp -->
+                                    
+                                    <select class="form-select" name="id_user" id="id_user" required>
+                                        <option selected> Pilih User</option>
+                                        <?php
+                                            $sql3=mysqli_query($koneksi,"SELECT id_user FROM auth_user");
+                                            while ($result2=mysqli_fetch_array($sql3)) {
+                                            ?>
+                                            <option value="<?=$result2['id_user']?>"><span ><?=$result2['id_user']?></span></option> 
+                                        <?php
+                                        }
+                                        ?>
+                                    </select> &nbsp
+                                    
+                                    <input type="date" class="form-control" placeholder="Masukkan Tanggal" name="created_timestamp_pengeluaran" required> &nbsp
+                                    <input type="text" class="form-control" pattern="[0-9]+" placeholder="Masukkan Pengeluaran" name="total_pengeluaran" required>
+                                    <div style="margin-left: 2%;">
+                                        <button class="btn btn-primary" type="submit" >Submit</button>
+                                    </div>
+                                </div>
+                                </form>
+                            </div>
+                        </div>
+
+                           
+                    </div>
+                </br>
+                </br>
+                    <div class="table-container">
+                        <h4>Riwayat Pengeluaran</h4>
                         <br>
                     
                         <table id="dataTable" class="table  table-striped table-bordered">
                             <thead>
                                 <tr class="text-center">
                                 <th>ID Admin</th>
-                                <th>Tanggal Barang Masuk</th>
-                                <th>total Barang Masuk</th>
-                                
+                                <th>Tanggal Pengeluaran</th>
+                                <th>Total Pengeluaran</th>
+                                <th>Action</th>
                                 </tr>
                             </thead>
                             <tbody>
                             <?php
                         
-                                $data = mysqli_query($koneksi,"
-                                select * from barang_masuk;
-                                    
-                                ");
+                                $data = mysqli_query($koneksi,"select * from pengeluaran order by created_timestamp_pengeluaran desc");
                                 $no = 1;
                                 
                                 while($d = mysqli_fetch_array($data)){
-                                    
                                 ?>    
                                     <tr class="text-center">
                                         <td><?php echo $d['id_user']; ?></td>
-                                        <td><?php $orgDate = $d['created_timestamp_barang_masuk'];  
-                                                    $newDate = date("d/m/Y H:i", strtotime($orgDate));  
+                                        <td><?php $orgDate = $d['created_timestamp_pengeluaran'];  
+                                                    $newDate = date("d/m/Y", strtotime($orgDate));  
                                                     echo  $newDate;   ?> </td>
-                                        <td><?php echo $d['total_barang_masuk']; ?></td>
-                                
+                                        <td><?php echo "Rp "; echo $d['total_pengeluaran']; ?></td>
+                                        <td style="text-align: center;">
+                                            <a onclick="return confirm('Apakah yakin data akan di hapus?')" href="ownerhapuspengeluaran.php?id_pengeluaran=<?php echo $d['id_pengeluaran']; ?>"><button class="btn-danger">hapus</button></a>
+                                        </td>
                                     </tr>
                                     <?php
                                 }
@@ -123,31 +192,29 @@
                                 <!-- Add more rows here -->
                             </tbody>
                             <tfoot>
-                            <?php 
-                                
-                                $data7 = mysqli_query($koneksi,"SELECT (SELECT SUM(total_barang_masuk) FROM barang_masuk) - (SELECT SUM(total_barang_keluar) FROM barang_keluar) AS total");
+                            <?php                                 
+                                $data7 = mysqli_query($koneksi,"select sum(total_pengeluaran) as total from pengeluaran ");
                                 $total = mysqli_fetch_array($data7);
-                                
-                                
-                                
                             ?>
                                 <tr class="text-center">
                                     <th  scope="row">Total</th>
                                     <!-- <td>Web-Development Bundle</td> -->
                                     <td></td>
-                                    <td><b><?php echo $total['total'] ?></b></td>
-                                    
+                                    <td><b><?php echo "Rp "; echo $total['total'] ?></b></td>
+                                    <td></td>
                                     
                                     <!-- <td><a href="checkout.php">Checkout</a></td> -->
                                 </tr>
                             </tfoot>
                         </table>
-                    </div>
+                    </div> 
                     
                 </div>
                 </div>
             </div>
         </div>
+
+        
         <script src="js/scripts.js"></script>
         <!-- <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script> -->
         <!-- <script src="https://cdn.datatables.net/1.11.3/js/jquery.dataTables.min.js"></script> -->

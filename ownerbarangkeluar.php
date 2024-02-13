@@ -55,7 +55,8 @@
                 <a class="list-group-item list-group-item-action list-group-item-light p-3 " href="owner.php" >Stock</a>
                     <a class="list-group-item list-group-item-action list-group-item-light p-3 " href="ownerbarangmasuk.php" >Barang Masuk</a>
                     <a class="list-group-item list-group-item-action list-group-item-light p-3 active" href="ownerbarangkeluar.php">Barang Keluar</a>
-                    <a class="list-group-item list-group-item-action list-group-item-light p-3" href="ownerprofit.php">profit</a>
+                    <a class="list-group-item list-group-item-action list-group-item-light p-3 " href="ownerpengeluaran.php">Pengeluaran</a>
+                    <a class="list-group-item list-group-item-action list-group-item-light p-3 " href="ownerprofit.php">Profit</a>
                     <a class="list-group-item list-group-item-action list-group-item-light p-3" href="logoutowner.php">Keluar</a>
                     
                 </div>

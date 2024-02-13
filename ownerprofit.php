@@ -27,7 +27,7 @@
     include 'connect.php';
 	session_start();
 	if($_SESSION['status']!="login"){
-		header("location:index.php?pesan=belum_login");
+		header("location:owner.php?pesan=belum_login");
 	}
     $userid = $_SESSION['id_user'];
 
@@ -50,13 +50,14 @@
 <div class="d-flex" id="wrapper">
             <!-- Sidebar-->
             <div class="border-end bg-white" id="sidebar-wrapper">
-                <div class="sidebar-heading border-bottom bg-light"><strong>SERBA 35.000!</strong></div>
+                <div class="sidebar-heading border-bottom bg-warning"><strong>HALO OWNER <BR>SERBA 35000!</BR></strong></div>
                 <div class="list-group list-group-flush">
-                    <a class="list-group-item list-group-item-action list-group-item-light p-3 " href="index.php" >Barang Masuk</a>
-                    <a class="list-group-item list-group-item-action list-group-item-light p-3" href="barangkeluar.php">Barang Keluar</a>
-                    <a class="list-group-item list-group-item-action list-group-item-light p-3 " href="pengeluaran.php">Pengeluaran</a>
-                    <a class="list-group-item list-group-item-action list-group-item-light p-3 active" href="profit.php">Profit</a>
-                    <a class="list-group-item list-group-item-action list-group-item-light p-3" href="logout.php">Keluar</a>
+                <a class="list-group-item list-group-item-action list-group-item-light p-3 " href="owner.php" >Stock</a>
+                    <a class="list-group-item list-group-item-action list-group-item-light p-3" href="ownerbarangmasuk.php" >Barang Masuk</a>
+                    <a class="list-group-item list-group-item-action list-group-item-light p-3" href="ownerbarangkeluar.php">Barang Keluar</a>
+                    <a class="list-group-item list-group-item-action list-group-item-light p-3 " href="ownerpengeluaran.php">Pengeluaran</a>
+                    <a class="list-group-item list-group-item-action list-group-item-light p-3 active" href="ownerprofit.php">Profit</a>
+                    <a class="list-group-item list-group-item-action list-group-item-light p-3" href="logoutowner.php">Keluar</a>
                     
                 </div>
             </div>
@@ -72,7 +73,7 @@
                 </nav>
                 <?php
                 date_default_timezone_set('Asia/Bangkok');
-                $date = date('Y-m-d H:i:s');
+                $date = date('Y-m-d');
             
                 $stokplus = mysqli_query($koneksi, "SELECT SUM(total_barang_masuk) AS stokplus FROM barang_masuk WHERE id_user = '$userid'");
                 $stokminus = mysqli_query($koneksi, "SELECT SUM(total_barang_keluar) AS stokminus FROM barang_keluar WHERE id_user = '$userid'");
@@ -87,7 +88,10 @@
                     $difference = $row['difference'];
                 }
 
-             
+                
+                
+                    
+                   
                 
                 ?>
                 <!-- Page content-->
@@ -115,6 +119,7 @@
                         <table id="dataTable" class="table  table-striped table-bordered">
                             <thead>
                                 <tr class="text-center">
+                                <th>Id User</th>
                                 <th>Tanggal Penjualan</th>
                                 <th>Total Barang Keluar</th>
                                 <th>Total Penjualan</th>
@@ -127,6 +132,7 @@
                                 $start_date = isset($_POST['start_date']) ? $_POST['start_date'] : null;
                                 $end_date = isset($_POST['end_date']) ? $_POST['end_date'] : null;
                                 $data = mysqli_query($koneksi,"SELECT
+                                a.id_user,
                                 a.formatted_date AS formatted_date,
                                 COALESCE(SUM(a.total_barang_keluar), 0) AS total_barang_keluar,
                                 COALESCE(SUM(a.total_harga), 0) AS total_harga,
@@ -134,29 +140,31 @@
                                 COALESCE(SUM(a.total_harga), 0) - COALESCE(SUM(b.total_pengeluaran), 0) AS total_profit
                             FROM
                                 (SELECT
+                                    id_user,
                                     DATE(created_timestamp_barang_keluar) AS formatted_date,
                                     total_barang_keluar,
                                     total_harga
                                 FROM
                                     barang_keluar
                                 WHERE
-                                    id_user = '$userid'
-                                    AND DATE(created_timestamp_barang_keluar) BETWEEN '$start_date' AND '$end_date' -- Filter by date range
+                                    -- id_user = '$userid'
+                                     DATE(created_timestamp_barang_keluar) BETWEEN '$start_date' AND '$end_date' -- Filter by date range
                                 GROUP BY
-                                    formatted_date) a
+                                    id_user,formatted_date) a
                             LEFT JOIN
                                 (SELECT
+                                    id_user,
                                     COALESCE(DATE(created_timestamp_pengeluaran), 0) AS formatted_date,
                                     SUM(total_pengeluaran) AS total_pengeluaran
                                 FROM
                                     pengeluaran
                                 WHERE
-                                    id_user = '$userid'
-                                    AND DATE(created_timestamp_pengeluaran) BETWEEN '$start_date' AND '$end_date' -- Filter by date range
+                                    -- id_user = '$userid'
+                                     DATE(created_timestamp_pengeluaran) BETWEEN '$start_date' AND '$end_date' -- Filter by date range
                                 GROUP BY
-                                    formatted_date) b ON a.formatted_date = b.formatted_date
+                                    id_user,formatted_date) b ON a.formatted_date = b.formatted_date
                             GROUP BY
-                                a.formatted_date;
+                                a.formatted_date, a.id_user;
                             ;
                             ");
                                 $no = 1;
@@ -164,7 +172,7 @@
                                 while($d = mysqli_fetch_array($data)){
                                 ?>    
                                     <tr class="text-center">
-                                        
+                                        <td><?php echo $d['id_user']; ?></td>
                                         <td><?php $orgDate = $d['formatted_date'];  
                                                     $newDate = date("d/m/Y", strtotime($orgDate));  
                                                     echo  $newDate;   ?> </td>
@@ -189,10 +197,10 @@
                                 (
                                     SELECT
                                         a.formatted_date AS formatted_date,
-                                        COALESCE(SUM(a.total_barang_keluar), 0) AS total_barang_keluar,
-                                        COALESCE(SUM(a.total_harga), 0) AS total_harga,
-                                        COALESCE(SUM(b.total_pengeluaran), 0) AS total_pengeluaran,
-                                        COALESCE(SUM(a.total_harga), 0) - COALESCE(SUM(b.total_pengeluaran), 0) AS total_profit
+                                        SUM(a.total_barang_keluar) AS total_barang_keluar,
+                                        SUM(a.total_harga) AS total_harga,
+                                        SUM(b.total_pengeluaran) AS total_pengeluaran,
+                                        SUM(a.total_harga - b.total_pengeluaran) AS total_profit
                                     FROM
                                         (
                                             SELECT
@@ -202,8 +210,7 @@
                                             FROM
                                                 barang_keluar
                                             WHERE
-                                                id_user = '$userid'
-                                                AND DATE(created_timestamp_barang_keluar) BETWEEN '$start_date' AND '$end_date'
+                                                DATE(created_timestamp_barang_keluar) BETWEEN '$start_date' AND '$end_date'
                                             GROUP BY
                                                 formatted_date
                                         ) a
@@ -215,25 +222,26 @@
                                             FROM
                                                 pengeluaran
                                             WHERE
-                                                id_user = '$userid'
-                                                AND DATE(created_timestamp_pengeluaran) BETWEEN '$start_date' AND '$end_date'
+                                                DATE(created_timestamp_pengeluaran) BETWEEN '$start_date' AND '$end_date'
                                             GROUP BY
                                                 formatted_date
                                         ) b ON a.formatted_date = b.formatted_date
                                     GROUP BY
                                         a.formatted_date
-                                ) AS subquery;");
+                                ) AS subquery;
+                            ");
                                 $total = mysqli_fetch_array($data7);
                             ?>
                              
                                 <tr class="text-center">
                                     <th  scope="row">Total</th>
                                     <!-- <td>Web-Development Bundle</td> -->
+                                    <td></td>
                                     <td><b><?php echo $total['sum_total_barang_keluar'] ?></b></td>
                                     <td>Rp<b><?php echo $total['sum_total_harga'] ?></b></td>
                                     <td>Rp<b><?php echo $total['sum_total_pengeluaran'] ?></b></td>
                                     <td>Rp<b><?php echo $total['sum_total_profit'] ?></b></td>
-                                    <td></td>
+                                    
                                     
                                     <!-- <td><a href="checkout.php">Checkout</a></td> -->
                                 </tr> 
@@ -245,10 +253,8 @@
                 </div>
             </div>
         </div>
-        <!-- Modal -->
 
-
-
+        
         <script src="js/scripts.js"></script>
         <!-- <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script> -->
         <!-- <script src="https://cdn.datatables.net/1.11.3/js/jquery.dataTables.min.js"></script> -->
