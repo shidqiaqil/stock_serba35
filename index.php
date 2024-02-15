@@ -77,7 +77,7 @@
                 $stokplus = mysqli_query($koneksi, "SELECT SUM(total_barang_masuk) AS stokplus FROM barang_masuk WHERE id_user = '$userid'");
                 $stokminus = mysqli_query($koneksi, "SELECT SUM(total_barang_keluar) AS stokminus FROM barang_keluar WHERE id_user = '$userid'");
 
-                $finalstok = mysqli_query($koneksi, "SELECT (SELECT SUM(total_barang_masuk) FROM barang_masuk WHERE id_user = '$userid') - (SELECT SUM(total_barang_keluar) FROM barang_keluar WHERE id_user = '$userid') AS difference");
+                $finalstok = mysqli_query($koneksi, "SELECT (SELECT COALESCE(SUM(total_barang_masuk),0) FROM barang_masuk WHERE id_user = '$userid') - (SELECT COALESCE(SUM(total_barang_keluar),0) FROM barang_keluar WHERE id_user = '$userid') AS difference");
                 
                 if ($finalstok) {
                     // Fetch the result as an associative array

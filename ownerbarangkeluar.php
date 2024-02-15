@@ -101,7 +101,7 @@
                             <?php
                         
                                 $data = mysqli_query($koneksi,"
-                                select * from barang_keluar;
+                                select * from barang_keluar order by created_timestamp_barang_keluar desc;
                                     
                                 ");
                                 $no = 1;

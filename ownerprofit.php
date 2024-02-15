@@ -104,7 +104,18 @@
                         <div class="col-md-6 ">
                                 <form  method="post">
                                 <div class="input-group">
-                                    
+                                
+                                <select class="form-select" name="id_user" id="id_user" required>
+                                        <option selected> Pilih User</option>
+                                        <?php
+                                            $sql3=mysqli_query($koneksi,"SELECT id_user FROM auth_user");
+                                            while ($result2=mysqli_fetch_array($sql3)) {
+                                            ?>
+                                            <option value="<?=$result2['id_user']?>"><span ><?=$result2['id_user']?></span></option> 
+                                        <?php
+                                        }
+                                        ?>
+                                    </select> &nbsp
                                 <input type="date" class="form-control" placeholder="Dari Tanggal" name="start_date" value="<?php echo isset($_POST['start_date']) ? $_POST['start_date'] : ''; ?>" required>
                                 <input type="date" class="form-control" placeholder="Tanggal Tanggal" name="end_date" value="<?php echo isset($_POST['end_date']) ? $_POST['end_date'] : ''; ?>" required>
 
@@ -131,15 +142,15 @@
                             <?php
                                 $start_date = isset($_POST['start_date']) ? $_POST['start_date'] : null;
                                 $end_date = isset($_POST['end_date']) ? $_POST['end_date'] : null;
-                                $data = mysqli_query($koneksi,"SELECT
+                                $data = mysqli_query($koneksi,"(SELECT
                                 a.id_user,
                                 a.formatted_date AS formatted_date,
                                 COALESCE(SUM(a.total_barang_keluar), 0) AS total_barang_keluar,
                                 COALESCE(SUM(a.total_harga), 0) AS total_harga,
-                                COALESCE(SUM(b.total_pengeluaran), 0) AS total_pengeluaran,
-                                COALESCE(SUM(a.total_harga), 0) - COALESCE(SUM(b.total_pengeluaran), 0) AS total_profit
-                            FROM
-                                (SELECT
+                                0 AS total_pengeluaran,
+                                COALESCE(SUM(a.total_harga), 0) AS total_profit
+                            FROM (
+                                SELECT
                                     id_user,
                                     DATE(created_timestamp_barang_keluar) AS formatted_date,
                                     total_barang_keluar,
@@ -147,25 +158,52 @@
                                 FROM
                                     barang_keluar
                                 WHERE
-                                    -- id_user = '$userid'
-                                     DATE(created_timestamp_barang_keluar) BETWEEN '$start_date' AND '$end_date' -- Filter by date range
+                                    DATE(created_timestamp_barang_keluar) BETWEEN '$start_date' AND '$end_date'
+                                    and id_user= '$userid'
                                 GROUP BY
-                                    id_user,formatted_date) a
-                            LEFT JOIN
-                                (SELECT
+                                    id_user, formatted_date
+                            ) a
+                            GROUP BY
+                                a.formatted_date, a.id_user)
+                            
+                            UNION
+                            
+                            (SELECT
+                                c.id_user,
+                                c.formatted_date AS formatted_date,
+                                0 AS sum_total_barang_keluar,
+                                0 AS sum_total_harga,
+                                COALESCE(SUM(d.total_pengeluaran), 0) AS sum_total_pengeluaran,
+                                -COALESCE(SUM(d.total_pengeluaran), 0) AS sum_total_profit
+                            FROM (
+                                SELECT
+                                    id_user,
+                                    DATE(created_timestamp_pengeluaran) AS formatted_date
+                                FROM
+                                    pengeluaran
+                                WHERE
+                                    DATE(created_timestamp_pengeluaran) BETWEEN '$start_date' AND '$end_date'
+                                    and id_user= '$userid'
+                                GROUP BY
+                                    id_user, formatted_date
+                            ) c
+                            LEFT JOIN (
+                                SELECT
                                     id_user,
                                     COALESCE(DATE(created_timestamp_pengeluaran), 0) AS formatted_date,
                                     SUM(total_pengeluaran) AS total_pengeluaran
                                 FROM
                                     pengeluaran
                                 WHERE
-                                    -- id_user = '$userid'
-                                     DATE(created_timestamp_pengeluaran) BETWEEN '$start_date' AND '$end_date' -- Filter by date range
+                                    DATE(created_timestamp_pengeluaran) BETWEEN '$start_date' AND '$end_date'
+                                    and id_user= '$userid'
                                 GROUP BY
-                                    id_user,formatted_date) b ON a.formatted_date = b.formatted_date
+                                    id_user, formatted_date
+                            ) d ON c.formatted_date = d.formatted_date
                             GROUP BY
-                                a.formatted_date, a.id_user;
-                            ;
+                                c.formatted_date, c.id_user 
+                            order by c.formatted_date desc);
+                            
                             ");
                                 $no = 1;
                                 
@@ -189,46 +227,75 @@
                             <tfoot>
                             <?php                                 
                                 $data7 = mysqli_query($koneksi,"SELECT
-                                SUM(total_barang_keluar) AS sum_total_barang_keluar,
-                                SUM(total_harga) AS sum_total_harga,
-                                SUM(total_pengeluaran) AS sum_total_pengeluaran,
-                                SUM(total_profit) AS sum_total_profit
-                            FROM
-                                (
+                                COALESCE(SUM(total_barang_keluar), 0) AS sum_total_barang_keluar,
+                                COALESCE(SUM(total_harga), 0) AS sum_total_harga,
+                                COALESCE(SUM(total_pengeluaran), 0) AS sum_total_pengeluaran,
+                                COALESCE(SUM(total_profit), 0) AS sum_total_profit
+                            FROM (
+                                SELECT
+                                    a.id_user,
+                                    a.formatted_date AS formatted_date,
+                                    COALESCE(SUM(a.total_barang_keluar), 0) AS total_barang_keluar,
+                                    COALESCE(SUM(a.total_harga), 0) AS total_harga,
+                                    0 AS total_pengeluaran,
+                                    COALESCE(SUM(a.total_harga), 0) AS total_profit
+                                FROM (
                                     SELECT
-                                        a.formatted_date AS formatted_date,
-                                        SUM(a.total_barang_keluar) AS total_barang_keluar,
-                                        SUM(a.total_harga) AS total_harga,
-                                        SUM(b.total_pengeluaran) AS total_pengeluaran,
-                                        SUM(a.total_harga - b.total_pengeluaran) AS total_profit
+                                        id_user,
+                                        DATE(created_timestamp_barang_keluar) AS formatted_date,
+                                        total_barang_keluar,
+                                        total_harga
                                     FROM
-                                        (
-                                            SELECT
-                                                DATE(created_timestamp_barang_keluar) AS formatted_date,
-                                                total_barang_keluar,
-                                                total_harga
-                                            FROM
-                                                barang_keluar
-                                            WHERE
-                                                DATE(created_timestamp_barang_keluar) BETWEEN '$start_date' AND '$end_date'
-                                            GROUP BY
-                                                formatted_date
-                                        ) a
-                                    LEFT JOIN
-                                        (
-                                            SELECT
-                                                COALESCE(DATE(created_timestamp_pengeluaran), 0) AS formatted_date,
-                                                SUM(total_pengeluaran) AS total_pengeluaran
-                                            FROM
-                                                pengeluaran
-                                            WHERE
-                                                DATE(created_timestamp_pengeluaran) BETWEEN '$start_date' AND '$end_date'
-                                            GROUP BY
-                                                formatted_date
-                                        ) b ON a.formatted_date = b.formatted_date
+                                        barang_keluar
+                                    WHERE
+                                        DATE(created_timestamp_barang_keluar) BETWEEN '$start_date' AND '$end_date'
+                                        and id_user= '$userid'
                                     GROUP BY
-                                        a.formatted_date
-                                ) AS subquery;
+                                        id_user, formatted_date
+                                ) a
+                                GROUP BY
+                                    a.formatted_date, a.id_user
+                            
+                                UNION
+                            
+                                SELECT
+                                    c.id_user,
+                                    c.formatted_date AS formatted_date,
+                                    0 AS sum_total_barang_keluar,
+                                    0 AS sum_total_harga,
+                                    COALESCE(SUM(d.total_pengeluaran), 0) AS sum_total_pengeluaran,
+                                    -COALESCE(SUM(d.total_pengeluaran), 0) AS sum_total_profit
+                                FROM (
+                                    SELECT
+                                        id_user,
+                                        DATE(created_timestamp_pengeluaran) AS formatted_date
+                                    FROM
+                                        pengeluaran
+                                    WHERE
+                                        DATE(created_timestamp_pengeluaran) BETWEEN '$start_date' AND '$end_date'
+                                        and id_user= '$userid'
+                                    GROUP BY
+                                        id_user, formatted_date
+                                ) c
+                                LEFT JOIN (
+                                    SELECT
+                                        id_user,
+                                        COALESCE(DATE(created_timestamp_pengeluaran), 0) AS formatted_date,
+                                        SUM(total_pengeluaran) AS total_pengeluaran
+                                    FROM
+                                        pengeluaran
+                                    WHERE
+                                        DATE(created_timestamp_pengeluaran) BETWEEN '$start_date' AND '$end_date'
+                                        and id_user= '$userid'
+                                    GROUP BY
+                                        id_user, formatted_date
+                                ) d ON c.formatted_date = d.formatted_date
+                                GROUP BY
+                                    c.formatted_date, c.id_user 
+                            ) AS subquery;
+                            
+                            
+                            
                             ");
                                 $total = mysqli_fetch_array($data7);
                             ?>
