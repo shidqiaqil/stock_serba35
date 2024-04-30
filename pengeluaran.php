@@ -138,10 +138,10 @@
                     </div>
                 </br>
                 </br>
-                    <div class="table-container">
+                    <div class="table-responsive">
                         <h4>Riwayat Pengeluaran</h4>
                         <br>
-                    
+                        <div class="table-responsive">
                         <table id="dataTable" class="table  table-striped table-bordered">
                             <thead>
                                 <tr class="text-center">
@@ -190,6 +190,7 @@
                                 </tr>
                             </tfoot>
                         </table>
+                            
                     </div> 
                     
                 </div>

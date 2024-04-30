@@ -106,16 +106,21 @@
                                 <div class="input-group">
                                 
                                 <select class="form-select" name="id_user" id="id_user" required>
-                                        <option selected> Pilih User</option>
-                                        <?php
-                                            $sql3=mysqli_query($koneksi,"SELECT id_user FROM auth_user");
-                                            while ($result2=mysqli_fetch_array($sql3)) {
+                                    <option selected disabled> Pilih User</option>
+                                    <?php
+                                        $sql3 = mysqli_query($koneksi, "SELECT id_user FROM auth_user");
+                                        while ($result2 = mysqli_fetch_array($sql3)) {
+                                            $id_user = $result2['id_user'];
                                             ?>
-                                            <option value="<?=$result2['id_user']?>"><span ><?=$result2['id_user']?></span></option> 
-                                        <?php
+                                            <option value="<?= $id_user ?>" <?php if (isset($_POST['id_user']) && $_POST['id_user'] == $id_user) echo 'selected'; ?>>
+                                                <span><?= $id_user ?></span>
+                                            </option> 
+                                    <?php
                                         }
-                                        ?>
-                                    </select> &nbsp
+                                    ?>
+                                </select> &nbsp;
+
+
                                 <input type="date" class="form-control" placeholder="Dari Tanggal" name="start_date" value="<?php echo isset($_POST['start_date']) ? $_POST['start_date'] : ''; ?>" required>
                                 <input type="date" class="form-control" placeholder="Tanggal Tanggal" name="end_date" value="<?php echo isset($_POST['end_date']) ? $_POST['end_date'] : ''; ?>" required>
 
@@ -127,6 +132,7 @@
                                 </form>
                         </div>
             </br>
+                        <div class="table-responsive">
                         <table id="dataTable" class="table  table-striped table-bordered">
                             <thead>
                                 <tr class="text-center">
@@ -140,6 +146,8 @@
                             </thead>
                             <tbody>
                             <?php
+                                $userid = (isset($_POST['id_user']) ? $_POST['id_user'] : '');
+                               # $userid = $_POST['id_user'];
                                 $start_date = isset($_POST['start_date']) ? $_POST['start_date'] : null;
                                 $end_date = isset($_POST['end_date']) ? $_POST['end_date'] : null;
                                 $data = mysqli_query($koneksi,"(SELECT
@@ -314,6 +322,7 @@
                                 </tr> 
                             </tfoot>
                         </table>
+                                </div>
                     </div>
                     
                 </div>

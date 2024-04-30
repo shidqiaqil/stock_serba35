@@ -130,7 +130,7 @@
                                     <!-- <input type="text" class="form-control" placeholder="Id user" name="iduser" required> &nbsp -->
                                     
                                     <select class="form-select" name="id_user" id="id_user" required>
-                                        <option selected> Pilih User</option>
+                                        <option selected disabled> Pilih User</option>
                                         <?php
                                             $sql3=mysqli_query($koneksi,"SELECT id_user FROM auth_user");
                                             while ($result2=mysqli_fetch_array($sql3)) {
@@ -155,7 +155,7 @@
                     </div>
                 </br>
                 </br>
-                    <div class="table-container">
+                    <div class="table-responsive">
                         <h4>Riwayat Pengeluaran</h4>
                         <br>
                     
